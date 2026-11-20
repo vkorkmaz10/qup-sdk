@@ -1,3 +1,4 @@
+import { type ImageSourcePropType } from 'react-native';
 /**
  * Bağlantıyı QR olarak çizer (tek bir yol, hafif). Kenar boşluğu okunabilirlik için 2 modül.
  * Ortada her zaman bir işaret durur: organizatörün (kurumun) logosu, yoksa Qup'un soru balonu (Volkan, 16 Kasım 2026).
@@ -8,5 +9,6 @@ export declare function QrCode({ value, size, color, background, logo, }: {
     size: number;
     color?: string;
     background?: string;
-    logo?: string | null;
+    /** Ortadaki logo: adres (string) ya da yerel görsel (`require('./logo.png')`). */
+    logo?: string | ImageSourcePropType | null;
 }): import("react").JSX.Element;

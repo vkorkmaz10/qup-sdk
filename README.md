@@ -7,7 +7,7 @@ Qup live Q&A and polls inside your own React Native / Expo app (and its web buil
 ## Install
 
 ```bash
-npm install github:vkorkmaz10/qup-sdk#v0.1.2      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.2
+npm install github:vkorkmaz10/qup-sdk#v0.1.3      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.3
 npx expo install @react-native-async-storage/async-storage react-native-svg
 ```
 
@@ -26,7 +26,7 @@ const mod = useQupModeration({ code, getStaffCard: () => myApi.staffCard(code), 
 
 // Stage (big screen in the hall): watches only, no card.
 const stage = useQupStage({ code });
-<QupStage room={stage} theme={theme} logo={logoUrl} joinUrl={(c) => `https://your.app/qup/${c}`} />;
+<QupStage room={stage} theme={theme} logo={require('./logo.png')} joinUrl={(c) => `https://your.app/qup/${c}`} />;
 ```
 
 - `theme`: colours, radius, font (`QupTheme`). `ui`: your own `Card`, `Button`, `Avatar` (and `VoteButton`, best left as Qup's).

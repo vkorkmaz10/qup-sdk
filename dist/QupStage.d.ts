@@ -1,3 +1,4 @@
+import { type ImageSourcePropType } from 'react-native';
 import type { QupRoomConnection } from './connection';
 import { type QupRoomUi, type QupTheme } from './QupRoom';
 import { type QupStrings } from './strings';
@@ -16,11 +17,17 @@ export type QupStageProps = {
     ui?: Pick<QupRoomUi, 'Avatar'>;
     lang?: 'tr' | 'en';
     strings?: Partial<QupStrings>;
-    /** Kurumun logosu (sol üst ve QR'ın ortası). Verilmezse Qup işareti. */
-    logo?: string;
+    /**
+     * Kurumun logosu (sol üst ve QR'ın ortası): adres (`'https://…/logo.png'`) ya da uygulamanın kendi dosyası
+     * (`require('./assets/logo.png')`). Verilmezse Qup işareti.
+     */
+    logo?: string | ImageSourcePropType;
     /** QR'ın açtığı bağlantı: kurumun uygulamasını bu etkinlikle açan adres. Verilmezse https://qupin.app/<KOD>. */
     joinUrl?: (code: string) => string;
-    /** QR'ın yanındaki kısa yazı (ör. "Altcointurk uygulamasından katılın"). Verilmezse bağlantının kendisi. */
+    /**
+     * Katılım yazısı (ör. "Uygulamamızdan katılın"). Verilmezse bağlantının kendisi. Küçük QR'ın yanında ve büyük QR'ın
+     * altında görünür; sahnede soru varken küçük QR'ın yanındaki yazı gizlenir (ekran soruya kalsın diye).
+     */
     joinText?: string;
     /** Profil fotoğrafları (varsayılan: evet). */
     avatars?: boolean;

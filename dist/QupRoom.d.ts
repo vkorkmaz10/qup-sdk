@@ -2,6 +2,9 @@ import { type ComponentType, type ReactNode } from 'react';
 import { type ViewStyle } from 'react-native';
 import type { QupRoomConnection } from './connection';
 import { type QupStrings } from './strings';
+import { DEFAULT_THEME, QupThemeProvider, useQupTheme, type QupTheme } from './theme';
+export { DEFAULT_THEME, QupThemeProvider, useQupTheme };
+export type { QupTheme };
 /**
  * Hazır katılımcı ekranı. Düzen Qup'unkidir (üst satırda geri, kişi sayısı ve CANLI; altında etkinlik adı; soru kutusu;
  * Öne çıkan / Yeni / Benim; sahnedeki soru; destek düğmesi sağda). Renkler ve parçalar kurumundur:
@@ -10,33 +13,6 @@ import { type QupStrings } from './strings';
  *   Qup'un parçası çizilir. Destek düğmesi varsayılan olarak Qup'unkidir: işaret üstte, sayı altta.
  * Veri `useQupRoom` kancasından gelir; bu bileşen yalnız çizer.
  */
-export type QupTheme = {
-    /** Ekran zemini (şeffaf bırakılırsa kurumun kendi zemini görünür). */
-    background: string;
-    /** Kart zemini ve kenarı (kurum `ui.Card` verirse kullanılmaz). */
-    card: string;
-    cardBorder: string;
-    /** Kart iç boşluğu: soru kutusundaki yatay çizgi kartın iki kenarına bu kadar uzanır. */
-    cardPadding: number;
-    text: string;
-    textSecondary: string;
-    /** Vurgu: gönder düğmesi, verilmiş destek, seçili sekme. */
-    accent: string;
-    onAccent: string;
-    /** Sekme şeridinin ve "Kime" seçiminin zemini. */
-    muted: string;
-    danger: string;
-    /** "CANLI" yazısı. */
-    live: string;
-    /** Destek düğmesindeki Qup işaretinin rengi. */
-    mark: string;
-    /** Sahnedeki sorunun kartı. */
-    stage: string;
-    onStage: string;
-    radius: number;
-    fontFamily?: string;
-};
-export declare const DEFAULT_THEME: QupTheme;
 export type CardProps = {
     children: ReactNode;
     style?: ViewStyle;
@@ -87,12 +63,6 @@ export type QupRoomProps = {
     /** Etkinlik adının altına, soru kutusunun üstüne kurumun eklemek istediği içerik. */
     header?: ReactNode;
 };
-export declare const useQupTheme: () => QupTheme;
-/** Temayı alt parçalara verir (QupRoom ve QupModeration). */
-export declare function QupThemeProvider({ theme, children }: {
-    theme: QupTheme;
-    children: ReactNode;
-}): import("react").JSX.Element;
 export declare function QupRoom(props: QupRoomProps): import("react").JSX.Element;
 export declare function DefaultCard({ children, style, dimmed }: CardProps): import("react").JSX.Element;
 /**

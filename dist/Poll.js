@@ -1,7 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useQupTheme } from './QupRoom';
+import { Text } from './Text';
 /**
  * Katılımcı anketi (Qup'taki gibi): alttan açılan pencere, tek seçim, "Gönder". Oy sonradan değiştirilemez.
  * Sonuçlar anket kapanıp moderatör gösterince çubuklarla görünür. Kapatılırsa üstte küçük bir şeritten yeniden açılır.

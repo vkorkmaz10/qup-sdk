@@ -12,8 +12,11 @@ export { activePoll, canReport, canVote, minutesSince, questionsFor, useComposer
 export type { QuestionTab } from './logic';
 export { QUP_STRINGS, errorKey, makeText } from './strings';
 export type { QupStrings } from './strings';
-export { DEFAULT_THEME, QupRoom, QupThemeProvider, QupVoteButton, useQupTheme } from './QupRoom';
-export type { AvatarProps, ButtonProps, CardProps, QupRoomProps, QupRoomUi, QupTheme, VoteButtonProps } from './QupRoom';
+export { QupRoom, QupVoteButton } from './QupRoom';
+export { DEFAULT_THEME, QupThemeProvider, useQupTheme } from './theme';
+export { Text as QupText, fontFor } from './Text';
+export type { AvatarProps, ButtonProps, CardProps, QupRoomProps, QupRoomUi, VoteButtonProps } from './QupRoom';
+export type { QupTheme } from './theme';
 export { QupMark } from './QupMark';
 export { QupModeration } from './QupModeration';
 export type { QupModerationProps } from './QupModeration';

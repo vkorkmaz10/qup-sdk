@@ -33,7 +33,8 @@ Follow the work order in SETUP.md (same repository): the project's own rules fir
 | Sign attendees in to an event | **Your server** signs a *member card* for the signed-in user (A2); your app passes it to the SDK |
 | Moderate (approve, put on stage, polls, settings) from your own admin screen | **Your server** signs a *staff card* with the moderator's verified e-mail (A3); Qup checks the role |
 | Give people the Moderator or Manager role (optional, any time, not part of setup) | **The Qup panel only** (https://qupin.app/panel): the owner sends an invitation link from Account › Team and the person accepts it by signing in to Qup once. Your app keeps no permission list of its own; it only tells Qup the signed-in person's verified e-mail, which must match the e-mail of that person's Qup account |
-| Brand (logo, page colour), billing, the organisation key | **The Qup panel only** |
+| See the account (plan, limits) and set the brand (logo, page colour) from your own admin panel | **Your server**, with the organisation key (management API, A1) |
+| Billing, creating or replacing the organisation key | **The Qup panel only** |
 
 Roles: **Moderator** approves and rejects questions, puts questions on stage, marks them answered, hides questions, blocks people, shows the QR on the big screen and runs prepared polls. **Manager** can also prepare polls, change event settings, download CSV and close or reopen the session. The account **owner** can do everything a Manager can.
 
@@ -53,11 +54,12 @@ Roles: **Moderator** approves and rejects questions, puts questions on stage, ma
 The SDK is plain JavaScript (no native code of its own) and lives in a public GitHub repository, together with this guide and the setup files: https://github.com/vkorkmaz10/qup-sdk
 
 ```bash
-npm install github:vkorkmaz10/qup-sdk#v0.1.2      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.2
-npx expo install @react-native-async-storage/async-storage react-native-svg
+npm install github:vkorkmaz10/qup-sdk#v0.1.3      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.3
+npx expo install @react-native-async-storage/async-storage react-native-svg expo-keep-awake
 ```
 
 - Peer dependencies: `react` >= 18, `react-native` >= 0.74, `@react-native-async-storage/async-storage`, `react-native-svg`. If your app already has the last two, nothing new is added. If one of them is new to your app, it has native code: rebuild your development and store builds (Expo Go already includes both).
+- `expo-keep-awake` is only for the stage screen (A6). If `npx expo install` cannot reach the network in your environment (cloud sandboxes often block api.expo.dev), install the same packages with `npm install <name>@<the version your Expo SDK expects>`; the `expo` package's own `bundledNativeModules.json` lists those versions.
 - It works in React Native and in react-native-web (Expo web, PWA). Qup's servers allow requests from any origin.
 - Import everything from `@qupin/react-native`.
 
@@ -77,8 +79,16 @@ Base URL `https://qupin.app/api/v1`, header `Authorization: Bearer <organisation
 | `DELETE /events/{CODE}` | | `{ ok: true }`, permanent |
 
 - Times are Unix milliseconds. An event closes by itself 24 hours after it is created (`closesAt`); after that it is final and cannot be reopened.
-- `CODE` is 4 letters and digits. Store it with your own event record; the app needs it for every screen.
+- `CODE` is 4 letters and digits; the app needs it for every screen. Keeping it in your own database next to your own event record is optional: if you have no event table of your own, read the list from `GET /events` when you need it.
 - Errors: `401 unauthorized` (missing, wrong or revoked key, or plan ended), `404 not_found` (no such event, or it belongs to another account), `400 bad_title`, `429 too_many_events` (100 new events per 24 hours on Enterprise), `409` with `{ error }` for a setting the event does not allow.
+- Account and brand, for your own admin panel:
+
+| Method and path | Body | Answer |
+| --- | --- | --- |
+| `GET /account` | | `{ email, name, plan: "enterprise", planUntil, limits: { participants, questionLength, eventsPerDay }, brand: { color, logoUrl }, keyCreatedAt }` (`planUntil` is Unix ms, or null for no end date) |
+| `PUT /brand` | any of `{ "color": "#RRGGBB" or null, "logo": "<base64 or data: URL of a PNG, JPEG or WebP, at most 500 KB>" or null }` | `{ color, logoUrl }`. A field you leave out is unchanged; `null` removes it. Errors: `400 bad_color`, `logo_too_big`, `logo_type` |
+
+  The brand is what Qup's own pages show (the embedded page, the Qup panel, Qup's own stage screen). The SDK screens take their colours from your `theme` and the stage logo from the `logo` prop; you can pass `brand.logoUrl` there. Open events pick up a brand change at once.
 - Qup does not call your server (no webhooks). Read the live numbers with `GET /events/{CODE}` when you need them.
 
 ## A2. Member card: sign attendees in
@@ -121,7 +131,7 @@ How someone gets into the team: The owner creates an invitation link in the Qup 
 | Field | Meaning |
 | --- | --- |
 | `code` | The event code |
-| `email` | The signed-in staff member's e-mail, as verified by your own sign-in. Never take it from the request body |
+| `email` | The signed-in staff member's e-mail, as verified by your own sign-in. Never take it from the request body. Upper and lower case do not matter |
 | `exp` | now + 300, as above |
 
 ```js
@@ -150,6 +160,7 @@ export function QupAttendee({ code }: { code: string }) {
 What the user sees, top to bottom: back, people count and LIVE; the event title; the question box ("To" speaker choice, questions left, send button); the question count and the Top / New / Mine tabs; the question on stage; the list with each question's photo or initials and the support button on the right; "⋯" on other people's questions (report, or hide this person's questions for me); an open poll when the moderator starts one. On a very narrow screen the send button shortens to "Send" / "Gönder" instead of cutting text.
 
 - After the first card, Qup gives the member a pass for that event (valid 24 hours, the event's lifetime). The pass is saved on the device, so returning users join without a new card. If Qup ever rejects a saved pass, the hook asks `getCard` again by itself.
+- A visitor who is not signed in to your app cannot get a member card. Show your own sign-in button, and, if the event is not members-only, a "Join without an account" link that opens `https://qupin.app/{CODE}` (Qup's own page, where they type a name). Do not sign cards for people you have not signed in.
 - `room.joining` is true while the card is exchanged; `room.cardError` holds an error code (table in A8); `room.retryCard()` tries again.
 - `titleBar={false}` hides Qup's top row and title if your own header already shows them; `header` puts your own content between the title and the question box.
 
@@ -171,8 +182,9 @@ export function QupModerator({ code }: { code: string }) {
       ui={{ Card: MyCard, Button: MyButton }}
       onBack={() => router.back()}
       onOpenStage={() => router.push(`/qup/${code}/stage`)}           // your stage screen (A6)
+      joinUrl={(c) => `https://your.app/qup/${c}`}                     // optional: the link "share" hands out (same as A6)
       onShare={(url) => Share.share({ message: url })}                 // optional
-      onExportCsv={() => Linking.openURL(myApi.url(`/api/qup/export?code=${code}`))} // optional, your server calls A1 export
+      onExportCsv={() => downloadCsv(code)}                            // optional, see below
     />
   );
 }
@@ -182,6 +194,8 @@ Layout (the same as the Qup panel): one list sorted by support. Each card has on
 
 - `room.canManage` is true for the owner and Managers.
 - Buttons you do not wire (`onOpenStage`, `onShare`, `onExportCsv`) are not shown.
+- `onShare` receives `joinUrl(code)` when you pass `joinUrl`, otherwise `https://qupin.app/{CODE}`.
+- `onExportCsv`: your server fetches `GET /api/v1/events/{CODE}/export` with the key and passes the CSV on. If your own admin endpoints need a session header, a plain `Linking.openURL` cannot send it: fetch the CSV in the app with your usual authenticated request and save or share the file (on the web, a Blob download). If that is not practical on the phone, leave the button out there.
 
 ## A6. Stage screen (the big screen in the hall)
 
@@ -196,7 +210,7 @@ export function QupBigScreen({ code }: { code: string }) {
     <QupStage
       room={room}
       theme={qupTheme}
-      logo="https://your.cdn/logo.png"
+      logo={require('../assets/logo.png')}          // or an https address
       joinUrl={(c) => `https://your.app/qup/${c}`} // opens YOUR app on this event (universal / app link)
       joinText="Join from our app"
     />
@@ -206,6 +220,9 @@ export function QupBigScreen({ code }: { code: string }) {
 
 - Three states, switched live by the moderators: the most supported questions (with photos), the question on stage in large type, and an open poll or its results.
 - The QR in the bottom right shows `joinUrl`. Point it at your own app (a universal link / app link, or your web page that opens the app) on the attendee screen for that code. Keep it visible even for members-only events: members who open your app join; others cannot. Without `joinUrl` the QR opens Qup's own web page for the event.
+- `logo` takes an https address or a local image (`require(...)`); it is drawn in the top left and in the middle of the QR.
+- `joinText` appears next to the small QR and under the large one. While a question is on stage the text next to the small QR is hidden so the screen belongs to the question.
+- A closed session stays on screen with a CLOSED label and its last questions until the event expires (24 hours after creation); after that the screen says the session has ended.
 - Tapping the small QR shows a large QR in the middle; tapping the large one closes it. Moderators can also show it from the moderation screen. `useQupStage` only watches: it needs no card and cannot send anything. To let the stage's QR tap change the moderators' setting too, pass a `useQupModeration` room instead.
 - Design size is 1280×720 and it scales to the window.
 
@@ -223,7 +240,10 @@ export const qupTheme: Partial<QupTheme> = {
   danger: '#FF6B5B', live: '#22C55E',
   mark: '#FF6B2C',         // the Qup support mark; keep it
   stage: '#1F1F24', onStage: '#FFFFFF',   // the "on stage" card on the attendee screen
-  radius: 18, fontFamily: 'YourFont',
+  radius: 18,
+  fontFamily: 'YourFont',  // one family that contains its own weights, or leave out for the system font
+  // Fonts loaded as one family per weight (Expo Google Fonts and similar): give them by weight instead.
+  fonts: { regular: 'Inter_400Regular', medium: 'Inter_500Medium', semibold: 'Inter_600SemiBold', bold: 'Inter_700Bold' },
 };
 ```
 

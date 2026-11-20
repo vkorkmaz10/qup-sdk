@@ -32,6 +32,7 @@ Yazılımcı, asistanına yalnız şunu yazar:
 
 - Kurumsal anahtar ve kart imzalama yalnız kurumun sunucusunda durur. Anahtar uygulamaya, web sayfasına ya da depoya girmez.
 - Canlı akış (sorular, oylar, anket) uygulamadan doğrudan `qupin.app`'e açılan sürekli bir bağlantıyla (WebSocket) gelir. Bu bağlantı kurumun sunucusundan **geçirilemez**: sunucusuz barındırma (Vercel gibi) sürekli bağlantı taşıyamaz, taşısa da sürekli maliyet doğurur.
+- Kural başka sözlerle yazılmış olabilir. Şunların hepsi bu kuraldır: "telefon dış kaynağı doğrudan çağırmaz", "veri her zaman kendi sunucumuzdan gelir", "üçüncü taraf çağrıları sunucumuzdan geçer", "istemciden dış API'ye doğrudan istek yok".
 - Projede "uygulama dış servislere doğrudan bağlanmaz" gibi bir kural yoksa bu madde seni ilgilendirmez; soru sorma.
 - Böyle bir kural varsa kuralı kendi başına çiğneme. Proje sahibine şu soruyu **aynen** sor (cevabı tahmin etme):
 

@@ -1,7 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import makeQr from 'qrcode-generator';
 import { useMemo } from 'react';
-import Svg, { Circle, G, Image as SvgImage, Path, Rect } from 'react-native-svg';
+import { Image, View } from 'react-native';
+import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 /**
  * Bağlantıyı QR olarak çizer (tek bir yol, hafif). Kenar boşluğu okunabilirlik için 2 modül.
  * Ortada her zaman bir işaret durur: organizatörün (kurumun) logosu, yoksa Qup'un soru balonu (Volkan, 16 Kasım 2026).
@@ -22,5 +23,7 @@ export function QrCode({ value, size, color = '#1B1B1F', background = '#FFFFFF',
     }, [value]);
     const box = count * 0.22;
     const at = (count - box) / 2;
-    return (_jsxs(Svg, { width: size, height: size, viewBox: `0 0 ${count} ${count}`, children: [_jsx(Rect, { width: count, height: count, fill: background }), _jsx(Path, { d: d, fill: color }), _jsx(Rect, { x: at - 0.6, y: at - 0.6, width: box + 1.2, height: box + 1.2, rx: 1, fill: background }), logo ? (_jsx(SvgImage, { href: logo, x: at, y: at, width: box, height: box, preserveAspectRatio: "xMidYMid meet" })) : (_jsxs(G, { transform: `translate(${at} ${at}) scale(${box / 200})`, children: [_jsx(Circle, { cx: 96, cy: 96, r: 66, fill: "#FF6B2C" }), _jsx(Path, { d: "M96 96 L155.3 124.9 Q154 154 176 176 Q142 166 122.8 156.3 Z", fill: "#FF6B2C" }), _jsx(Path, { d: "M70 108 L96 82 L122 108", fill: "none", stroke: "#1B1B1F", strokeWidth: 18, strokeLinecap: "round", strokeLinejoin: "round" })] }))] }));
+    // Logo SVG'nin içine değil üstüne çizilir: yerel görsel (require) web'de ve telefonda aynı çalışsın diye.
+    const k = size / count;
+    return (_jsxs(View, { style: { width: size, height: size }, children: [_jsxs(Svg, { width: size, height: size, viewBox: `0 0 ${count} ${count}`, children: [_jsx(Rect, { width: count, height: count, fill: background }), _jsx(Path, { d: d, fill: color }), _jsx(Rect, { x: at - 0.6, y: at - 0.6, width: box + 1.2, height: box + 1.2, rx: 1, fill: background }), logo ? null : (_jsxs(G, { transform: `translate(${at} ${at}) scale(${box / 200})`, children: [_jsx(Circle, { cx: 96, cy: 96, r: 66, fill: "#FF6B2C" }), _jsx(Path, { d: "M96 96 L155.3 124.9 Q154 154 176 176 Q142 166 122.8 156.3 Z", fill: "#FF6B2C" }), _jsx(Path, { d: "M70 108 L96 82 L122 108", fill: "none", stroke: "#1B1B1F", strokeWidth: 18, strokeLinecap: "round", strokeLinejoin: "round" })] }))] }), logo ? (_jsx(Image, { source: typeof logo === 'string' ? { uri: logo } : logo, resizeMode: "contain", style: { position: 'absolute', left: at * k, top: at * k, width: box * k, height: box * k } })) : null] }));
 }

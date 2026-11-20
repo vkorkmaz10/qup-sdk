@@ -77,6 +77,7 @@ declare const tr: {
     'stage.pollResults': string;
     'stage.withQup': string;
     'stage.joinApp': string;
+    'stage.ended': string;
     'mod.menu': string;
     'mod.stageIt': string;
     'mod.done': string;
@@ -223,6 +224,7 @@ export declare const QUP_STRINGS: {
         'stage.pollResults': string;
         'stage.withQup': string;
         'stage.joinApp': string;
+        'stage.ended': string;
         'mod.menu': string;
         'mod.stageIt': string;
         'mod.done': string;
@@ -367,6 +369,7 @@ export declare const QUP_STRINGS: {
         'stage.pollResults': string;
         'stage.withQup': string;
         'stage.joinApp': string;
+        'stage.ended': string;
         'mod.menu': string;
         'mod.stageIt': string;
         'mod.done': string;

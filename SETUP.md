@@ -32,6 +32,7 @@ The developer gives the assistant just this:
 
 - The organisation key and card signing stay on the organisation's server only. The key never goes into the app, a web page or a repository.
 - The live stream (questions, votes, polls) comes over a persistent connection (WebSocket) that the app opens directly to `qupin.app`. It **cannot be routed** through the organisation's server: serverless hosting (such as Vercel) cannot hold a persistent connection, and if it could, it would cost money all the time.
+- The rule may be worded differently. These all count: "the phone never calls an upstream source directly", "data always comes from our own server", "all third-party calls go through our backend", "no direct calls to external APIs from the client".
 - If the project has no rule like "the app never connects to outside services directly", this point does not concern you; ask nothing.
 - If it has one, do not break it on your own. Ask the project owner **exactly** this (do not guess the answer):
 

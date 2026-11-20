@@ -1,10 +1,11 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useMemo, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { QrCode } from './QrCode';
 import { QupMark } from './QupMark';
 import { DEFAULT_THEME, DefaultAvatar, QupThemeProvider } from './QupRoom';
 import { makeText } from './strings';
+import { Text } from './Text';
 /** Listede en çok bu kadar soru; ekrana tam sığmayan satır gizlenir (yarım satır görünmez). */
 const LIST_MAX = 5;
 export function QupStage(props) {
@@ -49,7 +50,8 @@ function StageScreen(props) {
     const who = (q, size) => (_jsxs(View, { style: [styles.who, { gap: 10 * s }], children: [avatars ? _jsx(Avatar, { name: q.name, picture: q.picture ?? null, size: size }) : null, _jsxs(Text, { style: [fg2, font, { fontSize: size * 0.55 }], children: [q.name, q.to ? _jsxs(Text, { style: [fg, { fontWeight: '700' }], children: [" \u2192 ", q.to] }) : null] })] }));
     let middle;
     if (!event) {
-        middle = _jsx(Text, { style: [fg2, font, { fontSize: 20 * s }], children: room.refusal ? t('err.generic') : t('joining') });
+        // Süresi dolmuş etkinlik: hata değil, "oturum kapandı" (Altcointurk geri bildirimi, 20 Kasım 2026).
+        middle = (_jsx(Text, { style: [fg2, font, { fontSize: 24 * s, marginTop: 80 * s, textAlign: 'center' }], children: room.refusal === 'closed' ? t('stage.ended') : room.refusal ? t('err.generic') : t('joining') }));
     }
     else if (poll) {
         const counts = poll.counts ?? [];
@@ -76,7 +78,7 @@ function StageScreen(props) {
                     i > 0 && avail > 0 && (bottoms[q.id] ?? 0) > avail ? { opacity: 0 } : null,
                 ], children: [_jsx(Text, { style: [styles.rank, fg2, font, { fontSize: 22 * s, width: 32 * s }], children: i + 1 }), avatars ? _jsx(Avatar, { name: q.name, picture: q.picture ?? null, size: 44 * s }) : null, _jsxs(View, { style: styles.flex, children: [_jsx(Text, { numberOfLines: 2, style: [styles.rowText, fg, font, { fontSize: 24 * s, lineHeight: 31 * s }], children: q.body }), _jsx(Text, { style: [fg2, font, { fontSize: 15 * s, marginTop: 4 * s }], children: q.to ? `${q.name} → ${q.to}` : q.name })] }), _jsxs(View, { style: { width: 64 * s, alignItems: 'center', gap: 2 * s }, children: [_jsx(QupMark, { size: 30 * s, fill: theme.mark }), _jsx(Text, { style: [styles.num, fg, font, { fontSize: 24 * s }], children: q.votes })] })] }, q.id))) }));
     }
-    return (_jsxs(View, { style: [styles.root, { backgroundColor: theme.background, padding: 40 * s }], children: [_jsxs(View, { style: styles.header, children: [logo ? (_jsx(Image, { source: { uri: logo }, style: { width: 52 * s, height: 52 * s, borderRadius: 12 * s, marginRight: 16 * s } })) : (_jsx(View, { style: { marginRight: 16 * s }, children: _jsx(QupMark, { size: 48 * s, fill: theme.mark }) })), _jsxs(View, { style: styles.flex, children: [_jsx(Text, { numberOfLines: 1, style: [styles.title, fg, font, { fontSize: 34 * s }], children: event?.title ?? '' }), !spotlight && !poll ? _jsx(Text, { style: [fg2, font, { fontSize: 16 * s }], children: t('stage.topQuestions') }) : null] }), event ? (_jsx(View, { style: [
+    return (_jsxs(View, { style: [styles.root, { backgroundColor: theme.background, padding: 40 * s }], children: [_jsxs(View, { style: styles.header, children: [logo ? (_jsx(Image, { source: typeof logo === 'string' ? { uri: logo } : logo, style: { width: 52 * s, height: 52 * s, borderRadius: 12 * s, marginRight: 16 * s } })) : (_jsx(View, { style: { marginRight: 16 * s }, children: _jsx(QupMark, { size: 48 * s, fill: theme.mark }) })), _jsxs(View, { style: styles.flex, children: [_jsx(Text, { numberOfLines: 1, style: [styles.title, fg, font, { fontSize: 34 * s }], children: event?.title ?? '' }), !spotlight && !poll ? _jsx(Text, { style: [fg2, font, { fontSize: 16 * s }], children: t('stage.topQuestions') }) : null] }), event ? (_jsx(View, { style: [
                             styles.pill,
                             {
                                 marginLeft: 16 * s,

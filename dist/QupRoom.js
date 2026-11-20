@@ -1,38 +1,17 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { createContext, useContext, useMemo, useState } from 'react';
-import { FlatList, Image, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { FlatList, Image, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { activePoll, canReport, canVote, minutesSince, useComposer, useNow, useQuestionList, useShortSend, } from './logic';
 import { PollSheet, PollStrip } from './Poll';
 import { REPORT_REASONS } from './protocol';
 import { QupMark } from './QupMark';
 import { errorKey, makeText } from './strings';
-export const DEFAULT_THEME = {
-    background: 'transparent',
-    card: '#FFFFFF',
-    cardBorder: '#E6E6EA',
-    cardPadding: 12,
-    text: '#1B1B1F',
-    textSecondary: '#6B6B76',
-    accent: '#FF6B2C',
-    onAccent: '#1B1B1F',
-    muted: '#EFEFF2',
-    danger: '#C2410C',
-    live: '#16A34A',
-    mark: '#FF6B2C',
-    stage: '#1B1B1F',
-    onStage: '#FFFFFF',
-    radius: 14,
-};
-/** Varsayılan parçaların temaya ulaştığı yer (kurumun kendi parçaları da `useQupTheme` ile okuyabilir). */
-const ThemeContext = createContext(DEFAULT_THEME);
-export const useQupTheme = () => useContext(ThemeContext);
-/** Temayı alt parçalara verir (QupRoom ve QupModeration). */
-export function QupThemeProvider({ theme, children }) {
-    return _jsx(ThemeContext.Provider, { value: theme, children: children });
-}
+import { Text, TextInput } from './Text';
+import { DEFAULT_THEME, QupThemeProvider, useQupTheme } from './theme';
+export { DEFAULT_THEME, QupThemeProvider, useQupTheme };
 export function QupRoom(props) {
     const theme = useMemo(() => ({ ...DEFAULT_THEME, ...props.theme }), [props.theme]);
-    return (_jsx(ThemeContext.Provider, { value: theme, children: _jsx(RoomScreen, { ...props, theme: theme }) }));
+    return (_jsx(QupThemeProvider, { theme: theme, children: _jsx(RoomScreen, { ...props, theme: theme }) }));
 }
 function RoomScreen(props) {
     const { room, ui = {}, lang = 'tr', strings, avatars = true, header, titleBar = true, onBack } = props;

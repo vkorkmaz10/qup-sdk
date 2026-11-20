@@ -27,6 +27,11 @@ export type QupModerationProps = {
     onOpenStage?: () => void;
     /** Katılım bağlantısını paylaşır (kurumun paylaşma penceresi). Bağlantı: https://qupin.app/<KOD>. */
     onShare?: (url: string) => void;
+    /**
+     * Paylaşılan katılım bağlantısı: kurumun uygulamasını bu etkinlikle açan adres (QupStage'deki `joinUrl` ile aynı
+     * fonksiyonu verin). Verilmezse https://qupin.app/<KOD>.
+     */
+    joinUrl?: (code: string) => string;
     /** Soruları CSV olarak indirir (kurumun sunucusu, kurumsal anahtarla GET /api/v1/events/<KOD>/export). */
     onExportCsv?: () => void;
     /** Geniş düzen (sağ sütun) hangi genişlikten başlar. Varsayılan 1000 piksel. */
