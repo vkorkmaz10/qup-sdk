@@ -1,0 +1,14 @@
+name: Sürüm etiketi
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  etiket:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          V="v$(node -p "require('./package.json').version")"
+          if git ls-remote --exit-code --tags origin "$V" >/dev/null; then echo "$V zaten var"; else git tag "$V" && git push origin "$V"; fi
