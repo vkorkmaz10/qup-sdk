@@ -34,6 +34,11 @@ export type QupModerationProps = {
     joinUrl?: (code: string) => string;
     /** Soruları CSV olarak indirir (kurumun sunucusu, kurumsal anahtarla GET /api/v1/events/<KOD>/export). */
     onExportCsv?: () => void;
+    /**
+     * Etkinlik kalıcı silindiğinde çağrılır (sahibi ⋯ menüsünden sildi ya da başka yerden silindi). Burada bir önceki
+     * ekrana dönün ve kendi etkinlik listenizi yenileyin. Verilmezse ekranda "Bu etkinlik silindi" yazısı kalır.
+     */
+    onDeleted?: () => void;
     /** Geniş düzen (sağ sütun) hangi genişlikten başlar. Varsayılan 1000 piksel. */
     wideFrom?: number;
 };

@@ -70,6 +70,7 @@ export type ServerMessage = {
     me: {
         mod: boolean;
         lead?: boolean;
+        owner?: boolean;
         name: string;
         asked: number;
         voted: number[];
@@ -85,6 +86,8 @@ export type ServerMessage = {
 } | {
     t: 'role';
     lead: boolean;
+} | {
+    t: 'deleted';
 } | {
     t: 'blocked';
     on: boolean;

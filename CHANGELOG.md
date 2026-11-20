@@ -15,6 +15,20 @@ What changed in each version of `@qupin/react-native` and what you need to do. W
 - Older versions keep working. If an update ever becomes required, it is announced with a date at the top of this file.
 - Server-side fixes (marked "Qup server" below) arrive by themselves; nothing to install.
 
+## 0.1.6 (21 November 2026)
+
+**What changed**
+
+- Deleting events: while the session is closed, the event's owner sees "Delete event" in the `QupModeration` ⋯ menu; after a confirmation the event is deleted for good. Team members (managers, moderators) cannot delete.
+- New `onDeleted`: called when the event is deleted (from this screen or elsewhere). Go back and reload your list.
+- Qup server: a live event cannot be deleted; `DELETE /api/v1/events/{CODE}` answers `409 not_closed` for a live event (the "close it first" rule is the same everywhere).
+- Screens connected to a deleted event say it was deleted and stop reconnecting.
+
+**What you need to do**
+
+- Give `QupModeration` an `onDeleted` (go back, reload the list).
+- To offer delete in your own admin event list: show it only for closed events, ask for confirmation, call `DELETE /api/v1/events/{CODE}` from your server.
+
 ## 0.1.5 (21 November 2026)
 
 **What changed**

@@ -16,6 +16,7 @@ const initial = {
     asked: 0,
     myName: null,
     lead: null,
+    owner: false,
     online: 0,
     total: 0,
     lastError: null,
@@ -32,6 +33,7 @@ export function roomReducer(state, msg) {
                 asked: msg.me.asked,
                 myName: msg.me.name,
                 lead: msg.me.mod ? (msg.me.lead ?? true) : null,
+                owner: !!msg.me.owner,
                 online: msg.online ?? 0,
                 total: msg.total,
                 lastError: null,
@@ -203,6 +205,13 @@ export function useQupConnection(o) {
                     setStatus('refused');
                     return;
                 }
+                if (msg.t === 'deleted') {
+                    // Etkinlik kalıcı silindi: yeniden bağlanılmaz.
+                    fatal = true;
+                    setRefusal('deleted');
+                    setStatus('refused');
+                    return;
+                }
                 if (msg.t === 'snap')
                     attempt = 0;
                 dispatch(msg);
@@ -261,6 +270,8 @@ export function useQupConnection(o) {
         setMembersOnly: (membersOnly) => send({ t: 'settings', membersOnly }),
         close: () => send({ t: 'close' }),
         reopen: () => send({ t: 'reopen' }),
+        /** Kapalı etkinliği kalıcı siler (yalnız sahibi). Başarılıysa `refusal` 'deleted' olur. */
+        remove: () => send({ t: 'delete' }),
         showQr: (on) => send({ t: 'qr', on }),
         pollCreate: (question, options) => send({ t: 'poll_create', question, options }),
         pollAction: (t, id) => send({ t, id }),

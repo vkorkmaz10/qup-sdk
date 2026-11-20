@@ -17,6 +17,8 @@ export type RoomState = {
     myName: string | null;
     /** Moderatör bağlantısında yönetme yetkisi (sahibi ya da Yönetici); rol değişince sunucu günceller. */
     lead: boolean | null;
+    /** Etkinliğin sahibi mi (ekip üyesi değil)? Kalıcı silme yalnız ona açıktır. */
+    owner: boolean;
     /** Yalnız moderatörde: içerideki kişi sayısı. */
     online: number;
     /** Sorulan bütün soruların sayısı. */
@@ -61,6 +63,8 @@ export declare function useQupConnection(o: ConnectOptions): {
     setMembersOnly: (membersOnly: boolean) => boolean;
     close: () => boolean;
     reopen: () => boolean;
+    /** Kapalı etkinliği kalıcı siler (yalnız sahibi). Başarılıysa `refusal` 'deleted' olur. */
+    remove: () => boolean;
     showQr: (on: boolean) => boolean;
     pollCreate: (question: string, options: string[]) => boolean;
     pollAction: (t: "poll_open" | "poll_close" | "poll_delete", id: number) => boolean;
@@ -80,6 +84,8 @@ export declare function useQupConnection(o: ConnectOptions): {
     myName: string | null;
     /** Moderatör bağlantısında yönetme yetkisi (sahibi ya da Yönetici); rol değişince sunucu günceller. */
     lead: boolean | null;
+    /** Etkinliğin sahibi mi (ekip üyesi değil)? Kalıcı silme yalnız ona açıktır. */
+    owner: boolean;
     /** Yalnız moderatörde: içerideki kişi sayısı. */
     online: number;
     /** Sorulan bütün soruların sayısı. */

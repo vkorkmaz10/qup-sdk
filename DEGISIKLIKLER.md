@@ -15,6 +15,20 @@ Bu dosya `@qupin/react-native` paketinin her sürümünde ne değiştiğini ve s
 - Eski sürümler çalışmaya devam eder. Güncelleme zorunlu olursa bu dosyanın en üstünde tarihle duyurulur.
 - Sunucu tarafındaki düzeltmeler (aşağıda "Qup sunucusu" diye geçenler) kendiliğinden gelir; bir şey kurmanız gerekmez.
 
+## 0.1.6 (21 Kasım 2026)
+
+**Ne değişti**
+
+- Etkinlik silme: oturum kapalıyken etkinliğin sahibi `QupModeration`'ın ⋯ menüsünde "Etkinliği sil"i görür; onaydan sonra etkinlik kalıcı silinir. Ekip üyeleri (yönetici, moderatör) silemez.
+- Yeni `onDeleted`: etkinlik silinince çağrılır (bu ekrandan ya da başka yerden). Önceki ekrana dönüp listenizi yenileyin.
+- Qup sunucusu: canlı etkinlik silinmez; `DELETE /api/v1/events/{KOD}` canlı etkinlikte `409 not_closed` döner ("önce kapatın" kuralı her yerde aynı).
+- Silinen etkinliğe bağlı ekranlar "Bu etkinlik silindi" der ve yeniden bağlanmayı bırakır.
+
+**Yapmanız gereken**
+
+- `QupModeration`'a `onDeleted` verin (önceki ekrana dönün, listeyi yenileyin).
+- Kendi yönetim panelinizdeki etkinlik listesine silme eklemek isterseniz: yalnız kapalı etkinlikte gösterin, onay isteyin, sunucunuzdan `DELETE /api/v1/events/{KOD}` çağırın.
+
 ## 0.1.5 (21 Kasım 2026)
 
 **Ne değişti**

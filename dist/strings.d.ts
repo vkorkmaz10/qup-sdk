@@ -56,6 +56,8 @@ declare const tr: {
     'err.closed': string;
     'err.final': string;
     'err.forbidden': string;
+    'err.deleted': string;
+    'err.not_closed': string;
     'err.full': string;
     'err.blocked': string;
     'err.bad_target': string;
@@ -120,6 +122,11 @@ declare const tr: {
     'mod.approvalIsOff': string;
     'mod.csv': string;
     'mod.close': string;
+    'mod.delete': string;
+    'mod.deleteTitle': string;
+    'mod.deleteText': string;
+    'mod.deleteYes': string;
+    'mod.deleteNo': string;
     'mod.reopen': string;
     'mod.approval': string;
     'mod.approvalText': string;
@@ -207,6 +214,8 @@ export declare const QUP_STRINGS: {
         'err.closed': string;
         'err.final': string;
         'err.forbidden': string;
+        'err.deleted': string;
+        'err.not_closed': string;
         'err.full': string;
         'err.blocked': string;
         'err.bad_target': string;
@@ -271,6 +280,11 @@ export declare const QUP_STRINGS: {
         'mod.approvalIsOff': string;
         'mod.csv': string;
         'mod.close': string;
+        'mod.delete': string;
+        'mod.deleteTitle': string;
+        'mod.deleteText': string;
+        'mod.deleteYes': string;
+        'mod.deleteNo': string;
         'mod.reopen': string;
         'mod.approval': string;
         'mod.approvalText': string;
@@ -356,6 +370,8 @@ export declare const QUP_STRINGS: {
         'err.closed': string;
         'err.final': string;
         'err.forbidden': string;
+        'err.deleted': string;
+        'err.not_closed': string;
         'err.full': string;
         'err.blocked': string;
         'err.bad_target': string;
@@ -420,6 +436,11 @@ export declare const QUP_STRINGS: {
         'mod.approvalIsOff': string;
         'mod.csv': string;
         'mod.close': string;
+        'mod.delete': string;
+        'mod.deleteTitle': string;
+        'mod.deleteText': string;
+        'mod.deleteYes': string;
+        'mod.deleteNo': string;
         'mod.reopen': string;
         'mod.approval': string;
         'mod.approvalText': string;

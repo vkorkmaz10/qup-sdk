@@ -33,6 +33,7 @@ export declare function useQupRoom(o: Common & {
     setMembersOnly: (membersOnly: boolean) => boolean;
     close: () => boolean;
     reopen: () => boolean;
+    remove: () => boolean;
     showQr: (on: boolean) => boolean;
     pollCreate: (question: string, options: string[]) => boolean;
     pollAction: (t: "poll_open" | "poll_close" | "poll_delete", id: number) => boolean;
@@ -51,6 +52,7 @@ export declare function useQupRoom(o: Common & {
     asked: number;
     myName: string | null;
     lead: boolean | null;
+    owner: boolean;
     online: number;
     total: number;
     lastError: string | null;
@@ -78,6 +80,7 @@ export declare function useQupModeration(o: Common & {
     setMembersOnly: (membersOnly: boolean) => boolean;
     close: () => boolean;
     reopen: () => boolean;
+    remove: () => boolean;
     showQr: (on: boolean) => boolean;
     pollCreate: (question: string, options: string[]) => boolean;
     pollAction: (t: "poll_open" | "poll_close" | "poll_delete", id: number) => boolean;
@@ -96,6 +99,7 @@ export declare function useQupModeration(o: Common & {
     asked: number;
     myName: string | null;
     lead: boolean | null;
+    owner: boolean;
     online: number;
     total: number;
     lastError: string | null;
@@ -116,6 +120,7 @@ export declare function useQupStage(o: Common): {
     setMembersOnly: (membersOnly: boolean) => boolean;
     close: () => boolean;
     reopen: () => boolean;
+    remove: () => boolean;
     showQr: (on: boolean) => boolean;
     pollCreate: (question: string, options: string[]) => boolean;
     pollAction: (t: "poll_open" | "poll_close" | "poll_delete", id: number) => boolean;
@@ -134,6 +139,7 @@ export declare function useQupStage(o: Common): {
     asked: number;
     myName: string | null;
     lead: boolean | null;
+    owner: boolean;
     online: number;
     total: number;
     lastError: string | null;

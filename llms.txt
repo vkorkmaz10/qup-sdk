@@ -54,7 +54,7 @@ Roles: **Moderator** approves and rejects questions, puts questions on stage, ma
 The SDK is plain JavaScript (no native code of its own) and lives in a public GitHub repository, together with this guide and the setup files: https://github.com/vkorkmaz10/qup-sdk
 
 ```bash
-npm install github:vkorkmaz10/qup-sdk#v0.1.5      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.5
+npm install github:vkorkmaz10/qup-sdk#v0.1.6      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.6
 npx expo install @react-native-async-storage/async-storage react-native-svg expo-keep-awake
 ```
 
@@ -76,7 +76,7 @@ Base URL `https://qupin.app/api/v1`, header `Authorization: Bearer <organisation
 | `POST /events/{CODE}/close` | | the same object as GET |
 | `POST /events/{CODE}/reopen` | | the same object as GET (only before the event expires) |
 | `GET /events/{CODE}/export` | | CSV file of questions and poll results |
-| `DELETE /events/{CODE}` | | `{ ok: true }`, permanent |
+| `DELETE /events/{CODE}` | | `{ ok: true }`, permanent. Only a closed event can be deleted: a live one answers `409 not_closed` (close it first) |
 
 - Times are Unix milliseconds. An event closes by itself 24 hours after it is created (`closesAt`); after that it is final and cannot be reopened.
 - `CODE` is 4 letters and digits; the app needs it for every screen. Keeping it in your own database next to your own event record is optional: if you have no event table of your own, read the list from `GET /events` when you need it.
@@ -195,6 +195,8 @@ Layout (the same as the Qup panel): one list sorted by support. Each card has on
 
 - `room.canManage` is true for the owner and Managers.
 - Buttons you do not wire (`onOpenStage`, `onShare`, `onExportCsv`) are not shown.
+- Delete: when the session is closed, the event's owner (the staff card whose e-mail is the Qup account's own, not a team member) sees "Delete event" in the ⋯ menu, with a confirmation. Pass `onDeleted={() => { router.back(); /* reload your event list */ }}`; it is called when the event is deleted (from this screen or anywhere else). Without it the screen shows "This event was deleted".
+- If your own admin list also offers delete, call `DELETE /api/v1/events/{CODE}` from your server, show it only for closed events, and ask for confirmation first.
 - `onShare` receives `joinUrl(code)` when you pass `joinUrl`, otherwise `https://qupin.app/{CODE}`.
 - `onExportCsv`: your server fetches `GET /api/v1/events/{CODE}/export` with the key and passes the CSV on. If your own admin endpoints need a session header, a plain `Linking.openURL` cannot send it: fetch the CSV in the app with your usual authenticated request and save or share the file (on the web, a Blob download). If that is not practical on the phone, leave the button out there.
 
