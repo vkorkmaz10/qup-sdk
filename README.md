@@ -7,7 +7,7 @@ Qup live Q&A and polls inside your own React Native / Expo app (and its web buil
 ## Install
 
 ```bash
-npm install github:vkorkmaz10/qup-sdk#v0.1.4      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.4
+npm install github:vkorkmaz10/qup-sdk#v0.1.5      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.5
 npx expo install @react-native-async-storage/async-storage react-native-svg
 ```
 
@@ -37,4 +37,4 @@ See `ornek/KoyuTema.tsx` for a complete dark-themed example of all three screens
 
 ## Updating
 
-When Qup improves a screen, a new version is tagged in this repository (`v0.1.4`, …). Install the new tag the same way; apps that use the templates need no code change.
+When Qup improves a screen, a new version is tagged in this repository (`v0.1.5`, …). Install the new tag the same way; apps that use the templates need no code change.

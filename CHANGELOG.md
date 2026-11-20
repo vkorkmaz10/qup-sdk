@@ -15,6 +15,17 @@ What changed in each version of `@qupin/react-native` and what you need to do. W
 - Older versions keep working. If an update ever becomes required, it is announced with a date at the top of this file.
 - Server-side fixes (marked "Qup server" below) arrive by themselves; nothing to install.
 
+## 0.1.5 (21 November 2026)
+
+**What changed**
+
+- In a closed session attendees do not see questions or polls: `QupRoom` shows only "This session has ended. Thank you for joining." If the session is reopened the screen fills and goes live by itself.
+- Qup server: while a session is closed, no question or poll data is sent to attendees at all (it is not merely hidden on screen). Moderation and the stage screen are not affected.
+
+**What you need to do**
+
+- Install the package only. If you draw your own attendee screen with `useQupRoom`, do not show the list while `room.event.closed` is true.
+
 ## 0.1.4 (20 November 2026)
 
 **What changed**

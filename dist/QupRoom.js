@@ -43,6 +43,9 @@ function RoomScreen(props) {
         return message(t(errorKey(room.refusal)));
     if (!event)
         return message(t('joining'));
+    // Kapalı oturum: sorular ve anket gösterilmez (Volkan, 21 Kasım 2026). Bağlantı açık kalır; yeniden açılınca ekran döner.
+    if (event.closed)
+        return message(t('closedNote'));
     const notice = composer.notice
         ? composer.notice.startsWith('err.')
             ? t(errorKey(composer.notice.slice(4)), { max: composer.max })

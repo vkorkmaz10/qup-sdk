@@ -54,7 +54,7 @@ Roles: **Moderator** approves and rejects questions, puts questions on stage, ma
 The SDK is plain JavaScript (no native code of its own) and lives in a public GitHub repository, together with this guide and the setup files: https://github.com/vkorkmaz10/qup-sdk
 
 ```bash
-npm install github:vkorkmaz10/qup-sdk#v0.1.4      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.4
+npm install github:vkorkmaz10/qup-sdk#v0.1.5      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.5
 npx expo install @react-native-async-storage/async-storage react-native-svg expo-keep-awake
 ```
 
@@ -264,7 +264,7 @@ export const qupTheme: Partial<QupTheme> = {
 | | `not_staff` | Staff card: no team member's Qup account has this e-mail. The owner invites the person from Account › Team and the person accepts by signing in to Qup with the same e-mail your app uses for them |
 | | `card_unavailable` | Your `getCard` / `getStaffCard` threw (your own API failed) |
 | | `network` | No connection to Qup |
-| `room.refusal` (the live room said no) | `closed` | The event has expired (24 hours after creation) and is closed for good. A session a Manager closed before that is not a refusal: everyone still connects, `room.event.closed` is true, nobody can ask, and the screens go live by themselves if it is reopened |
+| `room.refusal` (the live room said no) | `closed` | The event has expired (24 hours after creation) and is closed for good. A session a Manager closed before that is not a refusal: everyone still connects and `room.event.closed` is true. Attendees then see only a "this session has ended" message: Qup sends them no questions or polls while the session is closed, and `QupRoom` shows the message for you. Staff and the stage screen keep seeing everything. If the session is reopened the attendee screens fill and go live by themselves |
 | | `full` | The participant limit is reached |
 | | `members_only` | A guest tried to join a members-only event |
 | | `removed` | A staff member was removed from the team |

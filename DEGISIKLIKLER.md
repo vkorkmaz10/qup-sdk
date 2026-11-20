@@ -15,6 +15,17 @@ Bu dosya `@qupin/react-native` paketinin her sürümünde ne değiştiğini ve s
 - Eski sürümler çalışmaya devam eder. Güncelleme zorunlu olursa bu dosyanın en üstünde tarihle duyurulur.
 - Sunucu tarafındaki düzeltmeler (aşağıda "Qup sunucusu" diye geçenler) kendiliğinden gelir; bir şey kurmanız gerekmez.
 
+## 0.1.5 (21 Kasım 2026)
+
+**Ne değişti**
+
+- Kapalı oturumda katılımcı soruları ve anketi görmez: `QupRoom` yalnız "Bu oturum sona erdi. Katıldığınız için teşekkürler." yazısını gösterir. Oturum yeniden açılırsa ekran kendiliğinden dolar ve canlıya döner.
+- Qup sunucusu: kapalı oturumda katılımcıya soru ve anket verisi hiç gönderilmez (yalnız ekranda gizlenmez). Moderasyon ve salon ekranı etkilenmez.
+
+**Yapmanız gereken**
+
+- Yalnız paketi kurun. Kendi katılımcı ekranınızı `useQupRoom` ile kendiniz çizdiyseniz, `room.event.closed` iken listeyi göstermeyin.
+
 ## 0.1.4 (20 Kasım 2026)
 
 **Ne değişti**

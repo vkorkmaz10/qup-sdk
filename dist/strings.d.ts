@@ -9,6 +9,7 @@ declare const tr: {
     back: string;
     placeholder: string;
     closedPlaceholder: string;
+    closedNote: string;
     send: string;
     sendShort: string;
     to: string;
@@ -159,6 +160,7 @@ export declare const QUP_STRINGS: {
         back: string;
         placeholder: string;
         closedPlaceholder: string;
+        closedNote: string;
         send: string;
         sendShort: string;
         to: string;
@@ -307,6 +309,7 @@ export declare const QUP_STRINGS: {
         back: string;
         placeholder: string;
         closedPlaceholder: string;
+        closedNote: string;
         send: string;
         sendShort: string;
         to: string;
