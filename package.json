@@ -1,0 +1,31 @@
+{
+  "name": "@qupin/react-native",
+  "version": "0.1.2",
+  "description": "Qup live Q&A and polls for React Native and web: data, live connection and screen templates dressed with your own theme and components.",
+  "license": "UNLICENSED",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "ornek",
+    "README.md",
+    "KURULUM.md",
+    "SETUP.md",
+    "llms.txt"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-native": ">=0.74",
+    "@react-native-async-storage/async-storage": ">=1.21",
+    "react-native-svg": ">=15.0.0"
+  },
+  "dependencies": {
+    "qrcode-generator": "^2.0.4"
+  },
+  "react-native": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vkorkmaz10/qup-sdk.git"
+  },
+  "homepage": "https://github.com/vkorkmaz10/qup-sdk"
+}

@@ -1,0 +1,347 @@
+# Qup
+
+> Qup is live Q&A and polls for events. Attendees ask the speakers questions, upvote the best ones and answer live polls; moderators approve questions and put the best one on the big screen in the hall. This file tells a developer, or an AI coding assistant, how to build Qup into another app or web site.
+
+Last updated: 2026-11-20. This is the technical reference. Start with the setup file, which gives the work order: SETUP.md (Turkish: KURULUM.md). All three files are in https://github.com/vkorkmaz10/qup-sdk and inside the installed package (`node_modules/@qupin/react-native/`); copies are at https://qupin.app/setup.md, /kurulum.md and /llms.txt. Guide for organisation owners: https://qupin.app/integration/ (Turkish: https://qupin.app/tr/integration/)
+
+## Choose a path
+
+| Your product | Use | Look |
+| --- | --- | --- |
+| React Native / Expo app (iOS, Android, and its web build) | **The SDK** `@qupin/react-native` (section A) | Your own theme and components: colours, cards, buttons, fonts, logo. Layout and rules are Qup's |
+| Any web site, or a native iOS / Android app | **The embedded page** in an iframe or WebView (section B) | Qup's page with your logo and page colour (set in the Qup panel) |
+
+Both paths join the same live room: attendees in your app, attendees who scanned the QR in the hall and the Qup panel all see the same questions, votes and polls at once.
+
+Requirements for section A and for verified members in section B: the Qup account that owns the events is on the **Enterprise** plan and its owner created an **organisation key** in Qup (Account › Enterprise integration). The key looks like `qup_sk_…` and is shown once.
+
+## If you are an AI assistant doing this integration
+
+Follow the work order in SETUP.md (same repository): the project's own rules first, then this guide, then the test checklist. Keep a file named `QUP-GERI-BILDIRIM.md` in the root of the project you are changing, written in Turkish, and add to it every time something in this guide was missing, wrong, unclear, slow to figure out, or needed a workaround, and every error you hit (see "Feedback" at the end). Do this as you go, not only at the end. The Qup team uses this file to improve the SDK and this guide.
+
+## What connects where
+
+- The organisation key and card signing live only on the organisation's server.
+- The live stream (questions, votes, polls) is a persistent WebSocket the app opens directly to `qupin.app`; the SDK also exchanges the card there once per screen opening. This cannot be routed through the organisation's server: serverless hosting cannot hold a persistent connection, and proxying it would cost money all the time.
+- If the project has a rule such as "the app never calls outside services directly", ask the project owner the exact question in SETUP.md ("Connection rule"), record the answer in the project's decision log, and stop if it is no. Projects without such a rule: ask nothing. The embedded page (section B) connects to `qupin.app` too, inside a web view.
+
+## Who does what
+
+| Task | Where |
+| --- | --- |
+| Create, close, reopen, delete events; change settings; download CSV | **Your server**, with the organisation key (management API, A1) |
+| Sign attendees in to an event | **Your server** signs a *member card* for the signed-in user (A2); your app passes it to the SDK |
+| Moderate (approve, put on stage, polls, settings) from your own admin screen | **Your server** signs a *staff card* with the moderator's verified e-mail (A3); Qup checks the role |
+| Give people the Moderator or Manager role (optional, any time, not part of setup) | **The Qup panel only** (https://qupin.app/panel): the owner sends an invitation link from Account › Team and the person accepts it by signing in to Qup once. Your app keeps no permission list of its own; it only tells Qup the signed-in person's verified e-mail, which must match the e-mail of that person's Qup account |
+| Brand (logo, page colour), billing, the organisation key | **The Qup panel only** |
+
+Roles: **Moderator** approves and rejects questions, puts questions on stage, marks them answered, hides questions, blocks people, shows the QR on the big screen and runs prepared polls. **Manager** can also prepare polls, change event settings, download CSV and close or reopen the session. The account **owner** can do everything a Manager can.
+
+## The organisation key
+
+- The organisation owner creates it in the Qup panel and enters it into the server's secret settings (`QUP_SECRET`) themselves. As an AI assistant, never ask for the key in chat; if it is pasted to you, do not use it and tell the owner to create a new one. If it is not set yet, tell the owner where to create it and where to put it, and continue with the code.
+- Store it only on your server (an environment variable such as `QUP_SECRET`). Never put it in the mobile app, the web page, a repository or a chat message.
+- If it leaks, the owner creates a new key in Qup; the old one stops working immediately (cards signed with it are rejected). Update your server.
+- When the Enterprise plan ends, the key, member cards and staff cards stop working.
+
+---
+
+# A. The SDK (React Native / Expo, and its web build)
+
+## A0. Install
+
+The SDK is plain JavaScript (no native code of its own) and lives in a public GitHub repository, together with this guide and the setup files: https://github.com/vkorkmaz10/qup-sdk
+
+```bash
+npm install github:vkorkmaz10/qup-sdk#v0.1.2      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.2
+npx expo install @react-native-async-storage/async-storage react-native-svg
+```
+
+- Peer dependencies: `react` >= 18, `react-native` >= 0.74, `@react-native-async-storage/async-storage`, `react-native-svg`. If your app already has the last two, nothing new is added. If one of them is new to your app, it has native code: rebuild your development and store builds (Expo Go already includes both).
+- It works in React Native and in react-native-web (Expo web, PWA). Qup's servers allow requests from any origin.
+- Import everything from `@qupin/react-native`.
+
+## A1. Management API (your server only)
+
+Base URL `https://qupin.app/api/v1`, header `Authorization: Bearer <organisation key>`, JSON bodies. There is no CORS on purpose: never call it from a browser or the app.
+
+| Method and path | Body | Answer |
+| --- | --- | --- |
+| `POST /events` | `{ "title": "2–80 chars", "requireApproval": true, "membersOnly": false, "speakers": ["Name", …] }` (only `title` is required; `requireApproval` defaults to true) | `201 { code, title, status: "live", closesAt, requireApproval, membersOnly }` |
+| `GET /events` | | `{ events: [{ code, title, status, createdAt, closesAt, membersOnly }] }`, newest 100 |
+| `GET /events/{CODE}` | | `{ code, title, status, final, closesAt, participants, questions, requireApproval, membersOnly, questionsPerPerson }` |
+| `PATCH /events/{CODE}` | any of `{ "requireApproval": bool, "membersOnly": bool, "questionsPerPerson": 1–100 }` | the same object as GET; `400 bad_value` for a wrong type or range |
+| `POST /events/{CODE}/close` | | the same object as GET |
+| `POST /events/{CODE}/reopen` | | the same object as GET (only before the event expires) |
+| `GET /events/{CODE}/export` | | CSV file of questions and poll results |
+| `DELETE /events/{CODE}` | | `{ ok: true }`, permanent |
+
+- Times are Unix milliseconds. An event closes by itself 24 hours after it is created (`closesAt`); after that it is final and cannot be reopened.
+- `CODE` is 4 letters and digits. Store it with your own event record; the app needs it for every screen.
+- Errors: `401 unauthorized` (missing, wrong or revoked key, or plan ended), `404 not_found` (no such event, or it belongs to another account), `400 bad_title`, `429 too_many_events` (100 new events per 24 hours on Enterprise), `409` with `{ error }` for a setting the event does not allow.
+- Qup does not call your server (no webhooks). Read the live numbers with `GET /events/{CODE}` when you need them.
+
+## A2. Member card: sign attendees in
+
+Qup has no attendee accounts. Your server proves who the signed-in user is with a short-lived signed **member card**. Qup then lets the user in under your user id: no name form, the name cannot be changed or faked, one member counts once even on two devices, and the profile photo is shown next to their questions. Qup keeps no user list; it stores only an id derived from your user id, the display name and the photo address, for that event.
+
+Card format: `base64url(JSON) + "." + base64url(HMAC-SHA256(key, first part))`.
+
+| Field | Meaning |
+| --- | --- |
+| `code` | The event code |
+| `sub` | Your own stable user id, string, 1–128 characters. Same user = same `sub` |
+| `name` | Display name, 2–40 characters |
+| `picture` | Optional. Profile photo address, `https://` only, at most 500 characters. Anything else is ignored |
+| `exp` | Expiry, Unix time in **seconds**. Use now + 300. Cards valid for more than 15 minutes are rejected |
+
+Node.js (any language with HMAC-SHA256 works the same way):
+
+```js
+import { createHmac } from 'node:crypto';
+
+function sign(claims) {
+  const payload = Buffer.from(JSON.stringify({ ...claims, exp: Math.floor(Date.now() / 1000) + 300 })).toString('base64url');
+  const sig = createHmac('sha256', process.env.QUP_SECRET).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+
+// Behind your normal sign-in: only for the signed-in user making the request.
+export const memberCard = (code, user) => sign({ code, sub: String(user.id), name: user.displayName, picture: user.avatarUrl });
+```
+
+Expose it as an endpoint of your own API, for example `GET /api/qup/member-card?code=K7TR` → `{ "card": "…" }`.
+
+## A3. Staff card: moderate from your own admin screen
+
+For a person moderating in your app, your server signs a **staff card** with that person's e-mail address. Qup looks the address up in the event owner's team and connects them with that role. The e-mail of the owner's own Qup account connects as owner.
+
+How someone gets into the team: The owner creates an invitation link in the Qup panel (Account › Team) and sends it to the person; the person opens it and signs in to Qup once with Google or Apple. From then on Qup matches them by the e-mail of that Qup account, so it must be the same e-mail your app has verified for them (with Apple sign-in, the person should share their real e-mail, not a hidden relay address). The same goes for the owner: the owner's staff card must carry the e-mail of the owner's Qup account.
+
+| Field | Meaning |
+| --- | --- |
+| `code` | The event code |
+| `email` | The signed-in staff member's e-mail, as verified by your own sign-in. Never take it from the request body |
+| `exp` | now + 300, as above |
+
+```js
+export const staffCard = (code, user) => sign({ code, email: user.verifiedEmail });
+```
+
+Expose it only to signed-in staff of your app, for example `GET /api/qup/staff-card?code=K7TR` → `{ "card": "…" }`. Whether the person may moderate is decided by the Qup team list, not by your app: if the e-mail is not in the team, the SDK shows "You have no access to this event". When the owner removes someone from the team or changes their role, open screens update at once.
+
+## A4. Attendee screen
+
+```tsx
+import { QupRoom, useQupRoom } from '@qupin/react-native';
+import { useIsFocused } from '@react-navigation/native'; // expo-router apps have it
+
+export function QupAttendee({ code }: { code: string }) {
+  const room = useQupRoom({
+    code,
+    // Your own API, called with the user's session as usual. Called once per screen opening.
+    getCard: () => myApi.get(`/api/qup/member-card?code=${code}`).then((r) => r.card),
+    active: useIsFocused(), // the live connection closes while the screen is not visible
+  });
+  return <QupRoom room={room} theme={qupTheme} ui={{ Card: MyCard }} onBack={() => router.back()} lang="tr" />;
+}
+```
+
+What the user sees, top to bottom: back, people count and LIVE; the event title; the question box ("To" speaker choice, questions left, send button); the question count and the Top / New / Mine tabs; the question on stage; the list with each question's photo or initials and the support button on the right; "⋯" on other people's questions (report, or hide this person's questions for me); an open poll when the moderator starts one. On a very narrow screen the send button shortens to "Send" / "Gönder" instead of cutting text.
+
+- After the first card, Qup gives the member a pass for that event (valid 24 hours, the event's lifetime). The pass is saved on the device, so returning users join without a new card. If Qup ever rejects a saved pass, the hook asks `getCard` again by itself.
+- `room.joining` is true while the card is exchanged; `room.cardError` holds an error code (table in A8); `room.retryCard()` tries again.
+- `titleBar={false}` hides Qup's top row and title if your own header already shows them; `header` puts your own content between the title and the question box.
+
+## A5. Moderation screen (your admin area)
+
+```tsx
+import { QupModeration, useQupModeration } from '@qupin/react-native';
+
+export function QupModerator({ code }: { code: string }) {
+  const room = useQupModeration({
+    code,
+    getStaffCard: () => myApi.get(`/api/qup/staff-card?code=${code}`).then((r) => r.card),
+    active: useIsFocused(),
+  });
+  return (
+    <QupModeration
+      room={room}
+      theme={qupTheme}
+      ui={{ Card: MyCard, Button: MyButton }}
+      onBack={() => router.back()}
+      onOpenStage={() => router.push(`/qup/${code}/stage`)}           // your stage screen (A6)
+      onShare={(url) => Share.share({ message: url })}                 // optional
+      onExportCsv={() => Linking.openURL(myApi.url(`/api/qup/export?code=${code}`))} // optional, your server calls A1 export
+    />
+  );
+}
+```
+
+Layout (the same as the Qup panel): one list sorted by support. Each card has one button on the right: "Put on stage", and "Done" on the question that is on stage (it is then counted as answered). Putting another question on stage also counts the previous one as answered. Answered and hidden questions sit folded at the bottom; "Put on stage again" brings an answered one back. Each question's "⋯" holds the rare actions (clear a report, mark answered, hide, block with confirmation). Reported questions stay in the list with a "Reported" mark. When approval is on, a single line at the top opens the questions awaiting approval. The "⋯" in the header holds polls, stage screen, QR, share, settings, CSV and closing the session; Moderators do not see settings, CSV or close, and cannot prepare polls. From 1000 points wide (`wideFrom`), questions awaiting approval and the poll sit in a right-hand column and the QR and stage buttons move into the header.
+
+- `room.canManage` is true for the owner and Managers.
+- Buttons you do not wire (`onOpenStage`, `onShare`, `onExportCsv`) are not shown.
+
+## A6. Stage screen (the big screen in the hall)
+
+```tsx
+import { useKeepAwake } from 'expo-keep-awake';
+import { QupStage, useQupStage } from '@qupin/react-native';
+
+export function QupBigScreen({ code }: { code: string }) {
+  useKeepAwake(); // the screen must not sleep; this is your app's job
+  const room = useQupStage({ code });
+  return (
+    <QupStage
+      room={room}
+      theme={qupTheme}
+      logo="https://your.cdn/logo.png"
+      joinUrl={(c) => `https://your.app/qup/${c}`} // opens YOUR app on this event (universal / app link)
+      joinText="Join from our app"
+    />
+  );
+}
+```
+
+- Three states, switched live by the moderators: the most supported questions (with photos), the question on stage in large type, and an open poll or its results.
+- The QR in the bottom right shows `joinUrl`. Point it at your own app (a universal link / app link, or your web page that opens the app) on the attendee screen for that code. Keep it visible even for members-only events: members who open your app join; others cannot. Without `joinUrl` the QR opens Qup's own web page for the event.
+- Tapping the small QR shows a large QR in the middle; tapping the large one closes it. Moderators can also show it from the moderation screen. `useQupStage` only watches: it needs no card and cannot send anything. To let the stage's QR tap change the moderators' setting too, pass a `useQupModeration` room instead.
+- Design size is 1280×720 and it scales to the window.
+
+## A7. Theme, your own components and texts
+
+```ts
+import type { QupTheme } from '@qupin/react-native';
+
+export const qupTheme: Partial<QupTheme> = {
+  background: '#000000',   // screen background ('transparent' shows yours)
+  card: '#121214', cardBorder: '#26262B', cardPadding: 12,
+  text: '#F5F5F7', textSecondary: '#8E8E96',
+  accent: '#FFFFFF', onAccent: '#000000', // main buttons and a given support
+  muted: '#1C1C20',        // tab strip, chips
+  danger: '#FF6B5B', live: '#22C55E',
+  mark: '#FF6B2C',         // the Qup support mark; keep it
+  stage: '#1F1F24', onStage: '#FFFFFF',   // the "on stage" card on the attendee screen
+  radius: 18, fontFamily: 'YourFont',
+};
+```
+
+- `ui` slots take your own components: `Card` (`{ children, style?, dimmed? }`), `Button` (`{ title, onPress, disabled, variant?: 'primary' | 'outline' }`), `Avatar` (`{ name, picture, size }`), and on the attendee screen `VoteButton` (`{ count, voted, disabled, onPress, label, onStage? }`). Your components can read the theme with `useQupTheme()`. Leave `VoteButton` out unless you have a reason: the default is Qup's support button (mark on top, count below), and it is the same in every app that runs Qup.
+- `lang`: `'tr'` (default) or `'en'`. `strings` overrides any single text, e.g. `strings={{ send: 'Gönder' }}`; the keys are in `QUP_STRINGS.tr`.
+- Want a completely custom screen? Use the lower level: `useQupConnection` (live state and actions), `questionsFor`, `useQuestionList`, `useComposer`, `canVote`, `canReport`. Then the rules stay Qup's while the drawing is yours. Prefer the templates: when Qup improves a screen, apps that use the templates get it by updating the package, with no code change.
+
+## A8. Errors you may see
+
+| Where | Code | Meaning, what to do |
+| --- | --- | --- |
+| `room.cardError` (member or staff card) | `bad_signature` | Signed with a different or old key. Check `QUP_SECRET` |
+| | `expired`, `exp_too_long` | `exp` is in the past, or more than 15 minutes ahead. Use now + 300 seconds, and check your server clock |
+| | `wrong_event` | The card's `code` is another event |
+| | `bad_sub`, `bad_name`, `bad_email`, `bad_token` | A field is missing or out of range (see A2, A3) |
+| | `not_enabled` | The event owner is not on Enterprise, or has no active key |
+| | `not_staff` | Staff card: no team member's Qup account has this e-mail. The owner invites the person from Account › Team and the person accepts by signing in to Qup with the same e-mail your app uses for them |
+| | `card_unavailable` | Your `getCard` / `getStaffCard` threw (your own API failed) |
+| | `network` | No connection to Qup |
+| `room.refusal` (the live room said no) | `closed` | The session is closed (by a Manager, or it expired). Attendees cannot join a closed session; staff can, until it expires |
+| | `full` | The participant limit is reached |
+| | `members_only` | A guest tried to join a members-only event |
+| | `removed` | A staff member was removed from the team |
+| | `too_many` | Too many connection attempts from one person in a short time. Wait a minute |
+| `room.lastError` (an action failed; the templates show it) | `too_fast`, `limit`, `bad_length`, `blocked`, … | Shown to the user in their language; nothing to do in code |
+
+## A9. Live connection and cost
+
+- One WebSocket per open screen. It closes when the screen is not focused (`active: false`) or the app goes to the background, and reconnects when the user comes back; the room sends the full current state on every connection. Your server is not involved after the card exchange.
+- Cards are requested once per screen opening (member passes are reused for the whole event). The management API is called only when your staff do something.
+
+---
+
+# B. The embedded page (any web site or native app)
+
+Open one Qup address inside your app: an `<iframe>` on the web, a `WebView` in React Native, WKWebView on iOS, WebView on Android.
+
+```
+https://qupin.app/{CODE}?embed=1&t={MEMBER_CARD}
+https://qupin.app/{CODE}?embed=1&name={NAME}
+```
+
+| Part | Meaning |
+| --- | --- |
+| `embed=1` | Hides Qup's own back button so the page looks like part of your app |
+| `t={MEMBER_CARD}` | Recommended for signed-in users: the member card from A2. The user joins directly with their name and photo |
+| `name={NAME}` | Without a card: the display name, 2–40 characters, `encodeURIComponent`-encoded. Not verified; anyone editing the address can choose a name |
+
+```html
+<iframe src="https://qupin.app/K7TR?embed=1&t=…" style="width:100%;height:100%;border:0" title="Q&A"></iframe>
+```
+
+```tsx
+import { WebView } from 'react-native-webview'; // npx expo install react-native-webview (native code: rebuild)
+<WebView source={{ uri: `https://qupin.app/${code}?embed=1&t=${card}` }} style={{ flex: 1 }} />
+```
+
+- Request a fresh card every time the screen opens. After joining, the page keeps the user connected for the whole event.
+- Do not add `name` together with `t`; the name comes from the card.
+- Keep the WebView's default storage (no incognito, do not clear its data): the page remembers the attendee on the device.
+- With `name` in a native WKWebView / Android WebView (not React Native), the user taps "Join" once; with a card they join directly everywhere.
+- The page's look is Qup's, with the logo and page colour set in the Qup panel. Do not inject CSS or JavaScript into it.
+
+---
+
+## Members-only events
+
+`membersOnly: true` (when creating the event, with PATCH, or in the moderation settings) lets in only people with a member card. Someone who scans a Qup QR or types the code on qupin.app sees "This event can only be joined from the organiser's own app". Leave it off for public events where people without your app should also take part; both kinds of attendees then share the same room.
+
+## Do not
+
+- Do not put the organisation key anywhere except your server. A member or staff card in an address or request is safe: it expires in minutes and works for one event only.
+- Do not sign staff cards from an e-mail the client sends; use the e-mail your own sign-in verified.
+- Do not call Qup endpoints other than the management API (A1) yourself; the SDK and the embedded page call the rest. They are not a public API and may change.
+- Do not re-implement Qup's rules in your app (sorting, limits, who may vote). Use the templates or the lower-level helpers.
+
+## Test checklist
+
+If you work in a cloud sandbox that cannot reach `qupin.app` (many allow only GitHub and package registries), you can still build everything: the SDK and these files come from GitHub. Only the live steps below need `qupin.app`; hand those to the project owner to run on a real device or the deployed site, and say so in the feedback file. Do not treat the blocked address as a failure of the setup.
+
+1. In the Qup panel (https://qupin.app/panel), on the Enterprise account: the owner creates the organisation key and puts it on the server. For step 9 only, the owner invites one test moderator from Account › Team and that person accepts the link by signing in to Qup with the same e-mail they use in your app (this is a test, not a setup requirement).
+2. From your server, `POST /api/v1/events` with a test title: you get a 4-character code. `GET /api/v1/events/{CODE}` shows it live.
+3. Open the attendee screen in your app as a signed-in test user: you are in the room at once, with your name and photo, in your app's colours.
+4. Ask a question. If approval is on, it waits; approve it from your moderation screen (signed in as the owner or the test moderator). It appears for everyone.
+5. Upvote it from a second test user: the count changes on both devices. Open the screen as the first user on another device: one member, one vote.
+6. Put a question on stage from your moderation screen: it shows large on your stage screen and at the top of the attendee screen. Put another on stage: the first moves to "Answered". Bring it back with "Put on stage again".
+7. Prepare and start a poll (as owner or Manager); vote from the attendee screen; close it and show the results on the stage screen.
+8. Tap the small QR on the stage screen: the large QR opens and points to your app's link. Scan it with a phone that has your app: it opens the event.
+9. Sign in to your moderation screen with an e-mail that is not in the Qup team: "You have no access to this event". Change the test moderator's role in the Qup panel: the open screen follows without reloading.
+10. Turn on members-only, scan Qup's own address `https://qupin.app/{CODE}` in a browser without a card: you cannot join. Your app's users still can.
+11. `POST /api/v1/events/{CODE}/close`: all screens show that the session is closed. Download `GET …/export`.
+12. Send a wrong card (change one character): the attendee screen shows that sign-in could not be verified.
+
+## Feedback (please do this)
+
+Keep `QUP-GERI-BILDIRIM.md` in the root of your project, in Turkish, and update it while you work. Use this layout:
+
+```markdown
+# Qup entegrasyonu geri bildirim
+
+Proje: <uygulamanın adı> · SDK sürümü: <0.1.0> · Tarih: <YYYY-MM-DD>
+
+## Takıldığım noktalar
+### <kısa başlık>
+- Adım: <rehberdeki bölüm, ör. A4>
+- Beklediğim: …
+- Olan: … (hata mesajı varsa aynen)
+- Nasıl çözdüm / geçici çözüm: … (çözülmediyse "çözülmedi")
+- Önem: engelleyici / zaman kaybettirdi / küçük
+
+## Rehberde eksik, yanlış ya da belirsiz olanlar
+- …
+
+## SDK'da eksik olan ya da değişmesini önerdiğim şeyler
+- …
+
+## Test listesi sonucu
+- 1–12: geçti / kaldı (kaldıysa neden)
+```
+
+Report problems as you meet them, even small ones. If everything worked, say so in the file too.
