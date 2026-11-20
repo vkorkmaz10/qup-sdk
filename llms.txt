@@ -54,7 +54,7 @@ Roles: **Moderator** approves and rejects questions, puts questions on stage, ma
 The SDK is plain JavaScript (no native code of its own) and lives in a public GitHub repository, together with this guide and the setup files: https://github.com/vkorkmaz10/qup-sdk
 
 ```bash
-npm install github:vkorkmaz10/qup-sdk#v0.1.3      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.3
+npm install github:vkorkmaz10/qup-sdk#v0.1.4      # or: bun add github:vkorkmaz10/qup-sdk#v0.1.4
 npx expo install @react-native-async-storage/async-storage react-native-svg expo-keep-awake
 ```
 
@@ -161,6 +161,7 @@ What the user sees, top to bottom: back, people count and LIVE; the event title;
 
 - After the first card, Qup gives the member a pass for that event (valid 24 hours, the event's lifetime). The pass is saved on the device, so returning users join without a new card. If Qup ever rejects a saved pass, the hook asks `getCard` again by itself.
 - A visitor who is not signed in to your app cannot get a member card. Show your own sign-in button, and, if the event is not members-only, a "Join without an account" link that opens `https://qupin.app/{CODE}` (Qup's own page, where they type a name). Do not sign cards for people you have not signed in.
+- Recommended: a "return to the event" card on your home screen. When a member leaves the room screen, keep the event code and title on the device; while the event is live, show a card that opens the room screen again. Check "is it still live" through your own server (`GET /api/v1/events/{CODE}` → `status`), only when the home screen opens, not on a timer.
 - `room.joining` is true while the card is exchanged; `room.cardError` holds an error code (table in A8); `room.retryCard()` tries again.
 - `titleBar={false}` hides Qup's top row and title if your own header already shows them; `header` puts your own content between the title and the question box.
 
@@ -263,7 +264,7 @@ export const qupTheme: Partial<QupTheme> = {
 | | `not_staff` | Staff card: no team member's Qup account has this e-mail. The owner invites the person from Account › Team and the person accepts by signing in to Qup with the same e-mail your app uses for them |
 | | `card_unavailable` | Your `getCard` / `getStaffCard` threw (your own API failed) |
 | | `network` | No connection to Qup |
-| `room.refusal` (the live room said no) | `closed` | The session is closed (by a Manager, or it expired). Attendees cannot join a closed session; staff can, until it expires |
+| `room.refusal` (the live room said no) | `closed` | The event has expired (24 hours after creation) and is closed for good. A session a Manager closed before that is not a refusal: everyone still connects, `room.event.closed` is true, nobody can ask, and the screens go live by themselves if it is reopened |
 | | `full` | The participant limit is reached |
 | | `members_only` | A guest tried to join a members-only event |
 | | `removed` | A staff member was removed from the team |

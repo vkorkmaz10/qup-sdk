@@ -141,13 +141,33 @@ export function useAppActive() {
     }, []);
     return active;
 }
+/**
+ * Öne her dönüşte artan sayaç. Telefon tarayıcısı sekmeyi dondurunca "gizlendi" ve "göründü" tek seferde işlenebilir;
+ * o zaman `useAppActive` hiç değişmez ve işletim sisteminin arkada öldürdüğü bağlantı açık sanılır. Sayaç bağlantıyı
+ * her dönüşte yeniden kurdurur.
+ */
+function useResumeCount() {
+    const [n, setN] = useState(0);
+    useEffect(() => {
+        const sub = AppState.addEventListener('change', (s) => s === 'active' && setN((x) => x + 1));
+        return () => sub.remove();
+    }, []);
+    return n;
+}
+/** Gönderilen mesajdan sonra sunucudan bu sürede hiçbir şey gelmezse bağlantı ölü sayılır ve yeniden kurulur. */
+const STALE_MS = 6000;
 const BACKOFF = [1000, 2000, 5000, 10000];
 export function useQupConnection(o) {
     const [state, dispatch] = useReducer(roomReducer, initial);
     const [status, setStatus] = useState('connecting');
     const [refusal, setRefusal] = useState(null);
     const appActive = useAppActive();
+    const resumed = useResumeCount();
+    // Ölü bağlantı fark edilince artar; bağlantı baştan kurulur.
+    const [kick, setKick] = useState(0);
     const socket = useRef(null);
+    const lastFrame = useRef(0);
+    const probe = useRef(undefined);
     const { code, voter, name = null, pass = null, mod = null, role = null, watch = false, active = true } = o;
     const wsOrigin = (o.origin ?? DEFAULT_ORIGIN).replace(/^http/, 'ws');
     const wanted = !!voter && (!!name || !!mod || !!watch) && active && appActive && !refusal;
@@ -169,6 +189,7 @@ export function useQupConnection(o) {
             let fatal = false;
             ws.onopen = () => setStatus('open');
             ws.onmessage = (e) => {
+                lastFrame.current = Date.now(); // 'pong' dahil her çerçeve bağlantının yaşadığını gösterir
                 let msg;
                 try {
                     msg = JSON.parse(String(e.data));
@@ -205,12 +226,27 @@ export function useQupConnection(o) {
             socket.current?.close(1000, 'leave');
             socket.current = null;
         };
-    }, [wanted, code, voter, name, mod, role, watch, pass, wsOrigin]);
+    }, [wanted, code, voter, name, mod, role, watch, pass, wsOrigin, resumed, kick]);
+    useEffect(() => () => clearTimeout(probe.current), []);
     const send = useCallback((message) => {
         const ws = socket.current;
-        if (!ws || ws.readyState !== WebSocket.OPEN)
+        // Bağlantı yokken basılan düğme sessiz kalmaz: ekran "bağlantı koptu" der (bağlantı zaten yeniden kuruluyor).
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            dispatch({ t: 'error', code: 'offline' });
             return false;
+        }
         ws.send(JSON.stringify(message));
+        // Yoklama: sunucu 'ping'e odayı uyandırmadan 'pong' der. Cevap yoksa bağlantı açık görünen bir ölüdür
+        // (telefon ağ değiştirdi ya da tarayıcı arkada kesti); mesaj da gitmemiştir. Kullanıcıya söylenir, bağlantı yenilenir.
+        const sentAt = Date.now();
+        ws.send('ping');
+        clearTimeout(probe.current);
+        probe.current = setTimeout(() => {
+            if (socket.current !== ws || lastFrame.current >= sentAt)
+                return;
+            dispatch({ t: 'error', code: 'offline' });
+            setKick((k) => k + 1);
+        }, STALE_MS);
         return true;
     }, []);
     return {

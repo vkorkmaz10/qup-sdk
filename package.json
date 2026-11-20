@@ -1,6 +1,6 @@
 {
   "name": "@qupin/react-native",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Qup live Q&A and polls for React Native and web: data, live connection and screen templates dressed with your own theme and components.",
   "license": "UNLICENSED",
   "main": "dist/index.js",

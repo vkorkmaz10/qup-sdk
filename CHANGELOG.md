@@ -15,6 +15,19 @@ What changed in each version of `@qupin/react-native` and what you need to do. W
 - Older versions keep working. If an update ever becomes required, it is announced with a date at the top of this file.
 - Server-side fixes (marked "Qup server" below) arrive by themselves; nothing to install.
 
+## 0.1.4 (20 November 2026)
+
+**What changed**
+
+- `QupModeration` shows an action the server refused (for example reopening an expired event). Before, nothing happened on screen.
+- Dead connections are detected: when a phone changed network or the browser cut a background tab, the connection could look open and swallow messages (a button was pressed and nothing happened). Now the connection is probed after every action; with no answer the screen says the connection dropped, and it is rebuilt. It is also rebuilt every time the app returns to the foreground.
+- Qup server: a poll left open can be closed while the session is closed.
+- Qup server: participants can also connect to a closed session that has not expired; they see it as closed, cannot ask, and their screen goes live by itself when the session is reopened. Before, the screen stayed closed until the page was reloaded.
+
+**What you need to do**
+
+- Install the package only. If you keep an event list, refresh it when returning from the moderation screen (the status may have changed).
+
 ## 0.1.3 (20 November 2026)
 
 **What changed**

@@ -15,6 +15,19 @@ Bu dosya `@qupin/react-native` paketinin her sürümünde ne değiştiğini ve s
 - Eski sürümler çalışmaya devam eder. Güncelleme zorunlu olursa bu dosyanın en üstünde tarihle duyurulur.
 - Sunucu tarafındaki düzeltmeler (aşağıda "Qup sunucusu" diye geçenler) kendiliğinden gelir; bir şey kurmanız gerekmez.
 
+## 0.1.4 (20 Kasım 2026)
+
+**Ne değişti**
+
+- `QupModeration`, sunucunun reddettiği işlemi gösterir (ör. süresi dolmuş etkinliği yeniden açmak: "Etkinliğin süresi doldu; yeniden açılamaz"). Önce ekranda hiçbir şey olmuyordu.
+- Ölü bağlantı fark edilir: telefon ağ değiştirince ya da tarayıcı sekmeyi arkada kesince bağlantı açık görünüp mesajları yutabiliyordu (düğmeye basılıyor, hiçbir şey olmuyordu). Artık her işlemden sonra bağlantı yoklanır; cevap yoksa ekran "Bağlantı koptu, yeniden kuruluyor" der ve bağlantı yenilenir. Öne her dönüşte de bağlantı yeniden kurulur.
+- Qup sunucusu: kapalı oturumda açık kalmış anket kapatılabilir.
+- Qup sunucusu: kapatılmış ama süresi dolmamış oturuma katılımcı da bağlanır; "kapalı" görür, soru soramaz ve oturum yeniden açılınca ekranı kendiliğinden canlıya döner. Önce ekran, sayfa yenilenene kadar kapalı kalıyordu.
+
+**Yapmanız gereken**
+
+- Yalnız paketi kurun. Etkinlik listeniz varsa, moderasyon ekranından dönünce listeyi yenileyin (durum değişmiş olabilir).
+
 ## 0.1.3 (20 Kasım 2026)
 
 **Ne değişti**
